@@ -13,8 +13,6 @@ Given a target domain, ReconX:
 5. **Outputs a structured JSON report** for further analysis or integration into other tooling
 
 ## Architecture
-
-## Architecture
 ```
 main.py            → CLI entry point, orchestrates the pipeline
 subdomains.py       → crt.sh + HackerTarget subdomain enumeration
