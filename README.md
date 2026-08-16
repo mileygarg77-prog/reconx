@@ -61,7 +61,8 @@ python main.py --domain example.com
   "live_hosts": [
     {
       "url": "https://www.example.com/",
-      "status_code": 200
+      "status_code": 200,
+      "technologies": ["Nginx", "React"]
     }
   ],
   "cve_findings": {
