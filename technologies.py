@@ -15,8 +15,10 @@ SIGNATURES = [
     (r"bootstrap", "Bootstrap"),
     (r"laravel_session", "Laravel"),
     (r"csrfmiddlewaretoken", "Django"),
-    (r"X-Powered-By: Express", "Express.js"),
 ]
+
+# Precompile once at import time — avoids recompiling on every call
+_COMPILED_SIGNATURES = [(re.compile(pattern, re.IGNORECASE), tech) for pattern, tech in SIGNATURES]
 
 
 def detect_technologies(html_body):
@@ -25,10 +27,9 @@ def detect_technologies(html_body):
     Returns a list of detected technology names (deduplicated).
     """
     detected = set()
-    body_lower = html_body.lower()
 
-    for pattern, tech_name in SIGNATURES:
-        if re.search(pattern.lower(), body_lower):
+    for pattern, tech_name in _COMPILED_SIGNATURES:
+        if pattern.search(html_body):
             detected.add(tech_name)
 
     return sorted(detected)

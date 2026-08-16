@@ -1,10 +1,10 @@
 import argparse
 from subdomains import get_subdomains
 from live_hosts import get_live_hosts
-from headers import extract_headers
+from headers import extract_headers, detect_tech_from_headers
 from technologies import detect_technologies
 from cve_lookup import check_technologies_for_cves
-from report import save_report
+from report import save_report, generate_html_report
 
 
 def parse_args():
@@ -68,19 +68,23 @@ for host in live_hosts:
     else:
         print("    No notable headers found")
 
-    techs_found = detect_technologies(host["body"])
+    header_techs = detect_tech_from_headers(headers_found) if headers_found else set()
+    body_techs = set(detect_technologies(host["body"]))
+    techs_found = sorted(body_techs | header_techs)
+
+    host["techs_found"] = techs_found  # store so Phase 4 doesn't recompute
+
     if techs_found:
         print(f"    Technologies: {', '.join(techs_found)}")
     else:
         print("    No known technologies detected")
-
 # Phase 4: CVE cross-reference
 cve_results = {}
 
 if not args.skip_cve:
-    print("\n" + "=" * 40)
-    print("        CVE Cross-Reference")
-    print("=" * 40)
+    all_detected_techs = set()
+    for host in live_hosts:
+        all_detected_techs.update(host.get("techs_found", []))
 
     all_detected_techs = set()
     for host in live_hosts:
@@ -104,4 +108,5 @@ else:
     print("\n[i] Skipping CVE lookups (--skip-cve flag set)")
 
 # Phase 5: Save report
-save_report(domain, subdomains, live_hosts, cve_results, output_dir=args.output)
+json_path = save_report(domain, subdomains, live_hosts, cve_results, output_dir=args.output)
+generate_html_report(json_path)
